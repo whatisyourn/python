@@ -3705,7 +3705,7 @@ b - a
 #array([[9, 9, 9],       [9, 9, 9],       [9, 9, 9]])
 
 b / a 
-#array([[ 10.        ,   5.5       ,   4.        ],       [  3.25      ,   2.8       ,   2.5       ],       [  2.28571429,   2.125     ,   2.        ]])
+#array([[ 10. ,   5.5,   4. ],       [  3.25      ,   2.8  ,   2.5       ],       [  2.28571429,   2.125     ,   2.        ]])
 
 a[0] = 20
 a >= b
@@ -3715,3 +3715,634 @@ a >= b
 #False
 ```
 
+### 11.2.4统计运算
+
+Numpy库支持对整个数组或者按照指定轴向的数据进行统计计算,<font color='red'>当axis参数为0时，表示沿着纵轴计算，当axis为1时，表示沿着横轴进行计算。</font>
+
+```py
+arr = np.random.randint(1,10,(3,3))
+arr
+#array([[4, 9, 3],       [1, 9, 7],       [1, 6, 1]])
+
+arr.sort()
+arr
+#array([[3, 4, 9],       [1, 7, 9],       [1, 1, 6]])
+```
+
+| 方法           | 含义                 | 方法    | 含义                                 |
+| -------------- | -------------------- | ------- | ------------------------------------ |
+| sum            | 求和                 | unique  | 找出数组中的唯一值并返回已排序的结果 |
+| mean           | 算术平均值           | tile    | 把一个数组重复若干次                 |
+| std、var       | 标准差和方差         | repeat  | 按照轴向重复一个数组若干次           |
+| min、max       | 最小值和最大值       | cumprod | 所有元素的累计积                     |
+| argmin、argmax | 最小值和最大值的索引 | sort    | 排序                                 |
+| cumsun         | 所有元素的累计和     |         |                                      |
+
+## 11.3数组的存取
+
+- <font color='red'>save()</font>函数将一个数组以二进制的格式保存，系统自动添加文件扩展名为“.npy”
+- <font color='red'>savez()</font>将多个数组保存到一个二进制文件中，文件扩展名为“.npz”
+- <font color='red'>savetxt()</font>函数将数组写到以某个分隔符隔开的文本文件中
+- <font color='red'>load()</font>函数读取二进制文件，读取时不能省略扩展名
+- <font color='red'>loadtxt()</font>把一个文本文件加载到一个二维数组中。
+
+```py
+arr = np.arange(16).reshape(4,4)
+np.save("./data/save_arr",arr)
+datas = np.load("./data/save_arr.npy")datas
+#array([[ 0,  1,  2,  3],       [ 4,  5,  6,  7],       [ 8,  9, 10, 11],       [12, 13, 14, 15]])
+
+np.savetxt("./data/arr.csv",arr,fmt="%d",delimiter=":")
+f = open("./data/arr.csv","rt")               #打开文件
+f.readlines()                              #读取文件内容
+#['0:1:2:3\n', '4:5:6:7\n', '8:9:10:11\n', '12:13:14:15\n']
+
+datas = np.loadtxt("./data/arr.csv",delimiter=":")
+datas
+#array([[  0.,   1.,   2.,   3.],       [  4.,   5.,   6.,   7.],       [  8.,   9.,  10.,  11.],       [ 12.,  13.,  14.,  15.]])
+
+```
+
+#  第十二章  Pandas基础与实战
+
+## 12.1pandas数据结构
+
+### 12.1.1Series（序列）
+
+Series类似于一维数组，由一组<font color='red'>数据</font>（可以是任意的Numpy数据类型）和一组称之为<font color='red'>数据标签的索引</font>组成。
+
+#### 12.1.1.1Series对象的创建
+
+- ##### 通过一组列表数据产生
+
+```py
+from pandas import Series       #导入pandas库中Series模块
+pds1 =  Series([1, 2, 3, 4])
+pds1
+
+0    1
+1    2
+2    3
+3    4
+dtype: int64
+```
+
+- ##### 通过指定索引的方式
+
+```py
+pds2 = Series([1, 2, 3, 4], index=['a', 'b', 'c', 'd'])
+pds2
+
+a    1
+b    2
+c    3
+d    4
+dtype: int64
+```
+
+- ##### 通过字典方式创建
+
+```py
+data = {"i1":1,"i2":2,"i3":3,"i4":4}
+#由于字典是无序的，因此指定索引排列顺序
+ps3 = Series(data,index=['i1','i2','i3','i4'])      
+ps3
+
+i1    1
+i2    2
+i3    3
+i4    4
+dtype: int64
+```
+
+#### 12.1.1.2DataFrame（数据框）
+
+DataFrame是一种类似于关系表的表格型数据结构，DataFrame对象是一个<font color='red'>二维表格</font>,其中，<font color='red'>每列中的元素类型必须一致，而不同的列可以拥有不同的元素类型</font>。它是数据科学中最为广泛使用的数据结构之一。
+
+<font color='red'>建DataFrame的方法有很多，最常用的是传入二维数组、由数组、Series、列表或者元组组成的字典给DataFrame()。</font>
+
+```py
+data = {    "name":["王晓明","李静","田海"],    "sex":["男","女","男"],    "aged":[20,19,21]}
+#字典是无序的，因此需要通过columns指定列索引的排列顺序
+df = DataFrame(data,columns=["name","sex","aged"]) 
+df
+```
+
+DataFrame数据有<font color='red'>列索引和行索引</font>，行索引类似于关系表中每行的编号（未指定行索引的情况下，会使用0到N-1作为行索引），列索引类似于表格的列名（也称为字段）。
+
+```py
+df1 = DataFrame(data,columns = ["name","sex","aged"],index = ["L1","L2","L3"])
+df1
+
+```
+
+## 12.2pandas的索引操作
+
+### 12.2.1重新索引
+
+<font color='red'>重新索引就是对索引进行重新排序</font>，而索引对象是无法修改的。
+
+#### 12.2.1.1Series对象的重新索引
+
+通过Series的<font color='red'>reindex()方法可以调整index的次序</font>，但不是定义一个全新的index，也就是说调整后的index必须为已经存在的index，只是改变了原有index顺序而已，否则自动增加index，对应的元素值为NaN（not a number）缺失值。
+
+我们可以通过Series对象的isnull()方法或者notnull()方法来寻找缺失值。        
+
+注意：<font color='red'>使用reindex()方法不改变原来对象。</font>
+
+```py
+import numpy as np
+obj = Series([10,20,30,40,-10],index = ["a","b","c","d","e"],dtype=np.float64)
+obj
+
+a    10.0
+b    20.0
+c    30.0
+d    40.0
+e   -10.0
+dtype: float64
+
+obj1 = obj.reindex(index = ["b","c","a","d","e","n"])    #使用reindex方法调整index顺序obj1
+
+b    20.0
+c    30.0
+a    10.0
+d    40.0
+e   -10.0
+n     NaN         #原来对象并不存在“n”这个索引，pandas自动添加一个缺失值
+dtype: float64
+```
+
+#### 12.2.1.2DataFrame对象的重新索引
+
+```py
+df = DataFrame(np.arange(9).reshape(3,3),index = ["L1","L2","L3"],columns = ["id1","id2","id3"])
+#对df重新索引，新增的L4行标签对应的缺失值通过fill_value参数指定为9
+df2 = df.reindex(index = ["L1","L2","L3","L4"],columns = ["id3","id2","id1"],fill_value = 9)df2
+```
+
+### 12.2.2更换索引
+
+有时我们希望将列数据作为行索引，这时可以通过<font color='red'>set_index()方法来更换索引，生成一个新的DataFrame，原来DataFrame不会发生变换。</font>
+
+与set_index()方法相反的方法是reset_index()。
+
+```py
+data = {"name":("张三","李四","王五","赵六"),"sex":("男","女","女","男"),    "aged":(20,19,20,21),"score":(80,60,70,90)}
+df = DataFrame(data)                       #使用字典创建DataFrame对象
+df
+
+df1 = df.set_index("name")                 #使用name列更换默认行索引
+df1
+```
+
+## 12.3数据选择
+
+### 12.3.1索引和切片
+
+#### 12.3.1.1Series对象的索引和切片
+
+每个Series对象有两个特殊的属性：
+
+- index：由ndarray数组继承的Index索引对象，保存标签信息。
+
+- values：保存元素值的ndarry数组，numpy的函数都对此数组进行处理。
+
+```py
+pds2 = Series([1, 2, 3, 4], index=['a', 'b', 'c', 'd'])
+print("Index索引对象: ",pds2.index)
+print("值数组：",pds2.values)
+#Index索引对象: Index(['a', 'b', 'c', 'd'], dtype='object')
+#值数组：[1, 2, 3, 4]
+```
+
+Series对象中元素的索引支持<font color='red'>位置下标和标签下标</font>两种形式。
+
+```py
+print("使用位置下标方式索引元素pds2[2]: ",pds[2])
+print("使用标签下标方式索引元素pds2['b']: ",pds2['b'])
+#使用下标方式索引元素pds2[2]:  3
+#使用标签方式索引元素pds2['b']:  2
+```
+
+Series对象还支持<font color='red'>位置切片和标签切片</font>。<font color='red'>位置切片遵循Python的切片规则</font>，包括起始位置，但不包括结束位置；但<font color='red'>标签切片则同时包括起始标签和结束标签。</font>
+
+```py
+print("使用位置切片来索引元素pds2[0:2]",pds2[0:2])
+print("使用标签切片来索引元素pds2['a':'c']",pds2['a':'c'])
+
+使用位置切片来索引元素pds2[0:2] a    1
+b    2  dtype: int64
+使用标签切片来索引元素pds2['a':'c'] a    1
+b    2
+c    3
+dtype: int64
+```
+
+#### 12.3.1.2DataFrame索引和切片
+
+DataFrame有两个索引对象：索引行标签的index和索引列标签的columns。使用索引对象的values()方法可以获取对应标签的数组对象，这些对象可以供numpy使用。
+
+##### 12.3.1.2.1选取列
+
+ 通过<font color='red'>列索引标签或者以属性的方式</font>可以单独获取DataFrame的列数据，返回的数据为<font color='red'>Series结构</font>，通过标签列表可以获取多个列的数据。
+
+```py
+df["name"]    #选取name列，也可以使用df.name，返回一个Series对象,等价于df.name
+0    张三
+1    李四
+2    王五
+3    赵六
+Name: name, dtype: object
+
+df[["name","sex"]]            #选取name、sex列，返回一个DataFrame对象
+```
+
+##### 12.3.1.2.2选取行
+
+通过<font color='red'>行索引标签或者行索引位置（0到N-1）的切片形式可以选取行数据。</font>
+
+位置切片遵循Python的切片规则，包括起始位置，但不包括结束位置。      标签切片则同时包括起始标签和结束标签。      
+
+两种形式的切片返回结果都为DataFrame的子集。
+
+```py
+df1[0:2]
+df1["张三":"王五"]
+```
+
+切片方法选取行只能是<font color='red'>选取连续的行</font>，有很大的局限性。<font color='red'>如果要选取单独的几行，可以通过loc属性和iloc属性来实现。loc属性是按照行索引标签选取数据，iloc属性是按照行索引位置选取数据。</font>
+
+```py
+df1.iloc[[0,2]]                             #按照行索引位置选取数据
+df1.loc[["张三","王五"]]            #按照行索引标签选取数据
+```
+
+##### 12.3.1.2.3选取行和列
+
+<font color='red'>通过iloc属性可以完成，该属性同时支持索引标签和索引位置来进行数据选取。</font>
+
+```py
+df1.iloc[[0,3],0:3]                    #选取行索引是0、3，列索引是0、1、2的数据
+```
+
+##### 12.3.1.2.4布尔选择
+
+当要选取列中<font color='red'>具体数据</font>时，需要通过布尔选择来完成。
+
+```py
+df1["sex"] == "女"
+df1[df1["sex"] == "女"]
+df1[(df1["sex"] == "女") & (df1["score"] > 60)]
+```
+
+### 12.3.2操作行和列
+
+#### 12.3.2.1增加行(append()函数)
+
+增加行数据可以通过<font color='red'>append()函数</font>传入字典数据即可。
+
+```py
+append_data = {
+    "name":"朱八",
+    "sex":"男",
+    "aged":23,
+    "score":65
+}
+new_df = df.append(append_data,ignore_index = True)
+new_df
+```
+
+#### 12.3.2.2增加列
+
+增加列可以直接<font color='red'>通过标签索引方式进行</font>，当新增的列中的数值不一样时，可以传入列表或者数组结构进行赋值。
+
+```py
+new_df["city"] = ["北京","西安","长春","珠海","昆明"]
+new_df
+```
+
+#### 12.3.2.3删除
+
+使用<font color='red'>drop()函数可以删除指定轴上的信息</font>，原来的DataFrame数据不会删除。
+
+```py
+new_df.drop(2)                           #删除行索引是2的信息
+```
+
+#### 12.3.2.4修改标签
+
+通过<font color='red'>rename()函数完成行和列索引标签的修改，index参数指定要修改的行标签，columns参数指定要修改的列标签。</font>
+
+```py
+new_df.rename(index = {3:2,4:3},columns = {"score":"grade"}) #以字典形式指定修改信息
+```
+
+## 12.4数据运算
+
+### 12.4.1算术运算
+
+pandas数据对象在进行算术运算时，如果有相同索引对，则进行算术运算；如果没有，则会引入NaN缺失值，这就是数据对齐。       
+
+规则1：数据框DataFrame之间的计算规则---<font color='red'>先补齐标签索引</font>（新增索引对应值为NaN），得到相同结构后，再进行计算。      
+
+规则2：用算术运算符+、-、*、/等会产生NaN值，如果要将<font color='red'>默认填充的NaN改为指定值，建议不要使用算术运算符，而改用成员方法，如add()、sub()、mul()、div()。        </font>
+
+规则3：<font color='red'>数据框DataFrame与数列Series的计算规则---按行广播（axis=1）</font>，先把行改为等长，行内不做循环补齐，只是一行一行计算，不会跨行广播。  
+
+### 12.4.2函数应用和映射
+
+在数据分析时，常常会对数据进行较复杂的数据运算，这时需要定义函数。定义好的函数可以应用到pandas数据中，其中有3种方法：
+
+- <font color='red'>map()函数，将函数应用到Series的每个元素中</font>
+- <font color='red'>apply() 函数，将函数应用到DataFrame的行与列上</font>
+- <font color='red'>applymap()函数，将函数应用到DataFrame的每个元素上</font>
+
+```py
+data = { "name":["张三","李四","王五"],    "length":["172cm","175cm","168cm"]}
+df = DataFrame(data)
+def f(s):
+    return s.split("cm")[0]
+df["length"] = df["length"].map(f)  #在length列（Series对象）上的每个元素应用map函数
+df
+
+df1 = pd.DataFrame(np.random.rand(3,3),columns=["a","b","c"])
+df1
+f = lambda x:x.mean()               #定义lambda表达式，求均值
+df1.apply(f,axis = 0)                 #沿列方向应用f，求每列的均值
+```
+
+### 12.4.3排序
+
+在Series中，通过<font color='red'>sort_index()方法对索引进行排序</font>，默认为升序；通过<font color='red'>sort_values()方法对值进行排序</font>，默认是升序。
+
+```py
+obj = Series(range(4), index=['d', 'a', 'b', 'c'])
+obj
+d    0
+a    1
+b    2
+c    3
+dtype: int32
+
+obj.sort_index()
+a    1
+b    2
+c    3
+d    0
+dtype: int32
+```
+
+对于<font color='red'>DataFrame数据而言，通过指定轴方向，使用sort_index()方法可以对行或者列索引进行排序。要根据列进行排序，可以通过sort_values()方法，把列名传给by参数即可。</font>
+
+```py
+frame = DataFrame(np.arange(8).reshape((2, 4)), index=['two', 'one'],columns=['d', 'a', 'b', 'c'])
+frame.sort_index()                  #默认axis=0，按照纵轴行索引升序排列
+```
+
+### 12.4.4统计信息
+
+在DataFrame数据中，通过sum()方法可以对每列进行求和和汇总，还可以指定要汇总的轴方向，方法返回一个Series对象。
+
+```py
+df = DataFrame([[1.4, np.nan], [7.1, -4.5],[np.nan, np.nan], [0.75, -1.3]],index=['a', 'b', 'c', 'd'], columns=['one', 'two'])
+df.sum()    #默认axis=0，按照纵轴求和
+one    9.25
+two   -5.80
+dtype: float64
+
+df.sum(axis = 1)    #axis=1，按照横轴求和
+a    1.40
+b    2.60
+c    0.00
+d   -0.55
+dtype: float64
+```
+
+describe()方法可以对每个数值型列进行描述性统计，形成统计报告。
+
+```py
+df.describe()
+```
+
+### 12.4.5唯一值和值计数
+
+通过Series对象的<font color='red'>unique()方法可以获取不重复的数据，而通过Series对象的values_counts()方法可以统计每个值出现的次数。</font>
+
+```py
+df= DataFrame({'Va1': [1, 3, 4, 3, 4],'Va2': [2, 3, 1, 2, 3],'Va3': [1, 5, 2, 4, 4]})
+df["Va1"].value_counts()
+4    2
+3    2
+1    1
+Name: Va1, dtype: int64
+
+df["Va3"].unique()
+array([1, 5, 2, 4], dtype=int64)
+```
+
+## 12.5数据清洗
+
+数据清洗包括<font color='red'>缺失值处理、重复数据的处理和替代值处理</font>等具体操作。
+
+### 12.5.1处理缺失值
+
+在大多数的数据分析应用程序中，缺少数据是常见的，<font color='red'>缺少的值被pandas标注为np.nan也就是缺失值NaN。</font>
+
+| 方法名    | 含义                                          |
+| --------- | --------------------------------------------- |
+| isnull()  | 判断每个元素是否为空/缺失值，返回一个布尔数组 |
+| notnull() | 判断每个元素是否为非空，返回一个布尔数组      |
+| fillna()  | 设置缺失值的填补方法，返回一个新的对象        |
+| dropna()  | 删除缺失值                                    |
+
+```py
+NA = np.nan
+A = DataFrame([[1, 2, 3.], [4, 5, NA], [6, NA, 7]],columns=list("abc"),index=list("123"))
+A.isnull()                     #为True的就是缺失值
+```
+
+使用<font color='red'>fillna()方法可以对缺失值进行填补，参数value设置填补值，method参数设置填补方式，“ffill”使用前面值填补，“bfill”使用后面值填补。</font>
+
+使用<font color='red'>dropna()方法可以对缺失值进行删除</font>，可以定义删除方式，当how参数为“any”时，删除任何包含NaN的行或列，当how为“all”时，删除所有数据为NaN的行或列。
+
+### 12.5.2异常重复数据
+
+在DataFrame中，<font color='red'>通过duplicated()方法判断各行是否存在重复数据。</font>
+
+```py
+data = {
+    "id":[1,2,3,1,4],"name":["apple","pear","banana","apple","peach"],  "price":[5,4,3,5,3]
+}
+df = DataFrame(data)
+df.duplicated()                          #判断重复行
+0    False
+1    False
+2    False
+3     True
+4    False
+dtype: bool
+```
+
+当发现重复数据时，通过方法<font color='red'>drop_duplicates()删除</font>，该方法默认删除完全重复的行， 只保留第一次出现的数据。也可以指定部分列作为判断重复项的依据。
+
+```py
+print(df.drop_duplicates())                   #通过行判断重复
+#通过列索引“name”和“price”来判断重复，保留最后一次出现的重复数据
+print("-"*20,"\n",df.drop_duplicates(["name","price"],keep="last")) 
+#通过列索引“price”来判断重复，保留首次出现的重复数据
+print("-"*20,"\n",df.drop_duplicates(["price"]))
+```
+
+### 12.5.3替换值  
+
+在pandas中，通过<font color='red'>replace()方法完成值的替换工作</font>，可以单值替换，也可以多值替换，这时参数传入方式可以是列表也可以是字典。
+
+```py
+data = {
+    "name":["张三","李四","王五","赵六"],
+    "sex":["男","男","女","女"],
+    "aged":[20,19,np.nan,21],
+    "birth_city":["北京","西安","沈阳",""]
+}
+df = DataFrame(data)
+df.replace("","大连")
+```
+
+## 12.6数据分组(groupby())
+
+分组的基本过程是，<font color='red'>首先数据集按照分组键（key）的方式分成小的数据片（split），然后对每一个数据片进行操作，最后将结果再组合起来形成新的数据集（combine）。</font>
+
+```PY
+import seaborn as sns             
+import pandas as pd
+tips = sns.load_dataset("tips")       #载入tips数据集
+groupdata = tips["tip"].groupby(tips["sex"]).mean()   #依据性别分组键计算小费的平均值print(groupdata)
+
+sex
+     Male        3.089618
+     Female    2.833448
+Name: tip, dtype: float64
+
+```
+
+可以<font color='red'>通过多个分组键进行计算</font>，下面通过分组键day和time，计算小费平均值
+
+```PY
+groupdata1 = tips["tip"].groupby([tips["day"],tips["time"]]).mean()
+groupdata1               #Series对象
+day     time  
+Thur   Lunch     2.767705      
+           Dinner    3.000000
+Fri     Lunch     2.382857      
+          Dinner    2.940000
+Sat     Dinner    2.993103
+Sun   Dinner    3.255132
+Name: tip, dtype: float64
+```
+
+ groupby()方法使用的分组键除了上面的<font color='red'>Series</font>，还可以是列名、列表、元组、字典、函数等。
+
+### 12.6.1按列名分组
+
+```py
+smoker_mean = tips.groupby("smoker").mean() #按照smoker列索引分组
+smoker_mean             #返回多列的DataFrame对象
+```
+
+### 12.6.2按列表或元组分组
+
+分组键也可以是长度适当的列表或者元组，长度适当就是要与待分组的DataFrame的行数一样。
+
+```py
+df = DataFrame(np.arange(16).reshape(4,4))
+df.groupby(["x","y"] * 2).mean()                        #定义分组依据
+```
+
+### 12.6.3按字典分组
+
+如果原始的DataFrame中的分组信息很难确定或者不存在，可以通过字典结构，定义分组信息。
+
+```py
+df = DataFrame(np.arange(12).reshape(4,3),index=["x","y","X","Y"])
+dct = {"x":"1","y":"2","X":"1","Y":"2"}
+df.groupby(dct).sum()
+
+```
+
+### 12.6.4按函数分组
+
+函数作为分组键的原理类似于字典，通过映射关系进行分组，但是函数分组更加灵活。
+
+```py
+df = DataFrame(np.random.randn(3,3))      #生成一个正态分布数据框
+def f(x):
+    return "+" if x >= 0 else "-"
+df[0].groupby(df[0].map(f)).sum()
+
+ 0
+ +    1.016426
+  -   -0.733545
+ Name: 0, dtype: float64
+```
+
+## 12.7聚合运算
+
+<font color='red'>聚合运算就是对分组后的数据进行计算，产生标量值的过程。      </font> 
+
+### 12.7.1聚合运算方法
+
+| 方法   | 含义                       | 方法        | 含义                           |
+| ------ | -------------------------- | ----------- | ------------------------------ |
+| count  | 计算分组的数目，包括缺失值 | std、var    | 返回每组的标准差、方差         |
+| sum    | 返回每组的和               | min、max    | 返回每组的最小值、最大值       |
+| mean   | 返回每组的平均值           | prod        | 返回每组的乘积                 |
+| median | 返回每组的算术中位数       | first、last | 返回每组的第一个值、最后一个值 |
+| idxmax | 返回每组最大值所在索引     | idxmin      | 返回每组最小值所在的索引       |
+| median | 返回每组中位数             | describe    | 返回描述性统计信息             |
+
+```py
+max_bill = tips.groupby('sex')['total_bill'].max()
+min_bill = tips.groupby('sex')['total_bill'].min()
+对于更复杂的聚合运算，可以自定义聚合函数，通过aggregate或agg()方法传入。
+def get_range(x):
+       return x.max()-x.min()
+bills_range = tips.groupby('sex')['total_bill'].agg(get_range)
+bills_range
+
+sex
+Male      43.56
+Female    41.23
+Name: total_bill, dtype: float64
+```
+
+### 12.7.2多函数应用
+
+#### 12.7.2.1单列多函数
+
+对agg()方法的参数传入多函数列表，即可完成一列的多函数运算。如果不想使用默认的运算函数名作为列名，可以以元组的形式传入，前面是名称，后面为聚合函数。
+
+```py
+tips.groupby(['sex','smoker'])['tip'].agg(['mean','std',get_range])
+
+tips.groupby(['sex','smoker'])['tip'].agg([('小费均值','mean'),('极差',get_range)])
+```
+
+#### 12.7.2.2 多列多函数
+
+对多列进行多聚合函数运算时，会产生层次化索引。
+
+```py
+#在小费集的total_bill和tip列上应用聚合函数
+tips.groupby(['day','time'])['total_bill','tip'].agg([('tip_mean','mean'),('Range',get_range)])
+```
+
+#### 12.7.2.3不同列不同函数
+
+如果需要对不同列使用不同的函数运算，可以通过字典来定义列和聚合函数之间的映射关系。
+
+```py
+ tips.groupby(['day','time'])['total_bill','tip'].agg({'total_bill':'sum','tip':'mean'})
+```
+
+<img src="Python.assets/image-20230207223059271.png" alt="image-20230207223059271" style="zoom: 50%;" />
