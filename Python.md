@@ -3031,7 +3031,7 @@ import matplotlib.pyplot as plt
 
 显示图形
 
-10.2.1.4一些问题设置(字体)
+#### 10.2.1.4一些问题设置(字体)
 
 ```py
 #matplotlib inline                       
@@ -3063,6 +3063,15 @@ plt.show()                             #显示图形
 ```
 
 ![image-20230207200057890](Python.assets/image-20230207200057890.png)
+
+#### 10.2.1.5绘画风格设置use
+
+```py
+#科学绘画风格
+plt.style.use('science')
+```
+
+
 
 ### 10.2.2绘制多个子图
 
