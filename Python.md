@@ -3438,7 +3438,7 @@ pairplot()<font color='red'>只对数值型的列有效</font>，其中参数dia
 sns.pairplot(tips, diag_kind="hist",hue="sex")
 ```
 
-![image-20230207202648247](Python.assets/image-20230207202648247.png)
+<img src="Python.assets/image-20230207202648247.png" alt="image-20230207202648247" style="zoom:200%;" />
 
 ### 10.7.9热力图
 
