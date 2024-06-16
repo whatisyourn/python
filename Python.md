@@ -1434,6 +1434,29 @@ print('I am {person[name]}, {person[age]} years old, a {person[job]}.'.format(pe
 I am Liu, 24 years old, a Pythoneer.
 ```
 
+#### f 表达式
+
+python 3.6版本以上才会支持。
+
+其简易格式为： `f'{name} is {age} years old'`
+
+```python
+line = "The output will have the expression text"
+f"{line = }"  # use "=" sign, require python 3.8 or above
+'line = "The output will have the expression text"'
+
+width = 10
+precision = 4
+value = 12.34567
+
+f"result: {value:{10}.{4}}"  # set format_spec
+'result:      12.35'
+f"result: {value:{width}.{precision}}"  # nested fields
+'result:      12.35'
+```
+
+
+
 ## 4.8案例实战
 
 编写程序，生成100个4位数的验证码，随机挑选一个。
@@ -3887,7 +3910,8 @@ dtype: float64
 ```py
 df = DataFrame(np.arange(9).reshape(3,3),index = ["L1","L2","L3"],columns = ["id1","id2","id3"])
 #对df重新索引，新增的L4行标签对应的缺失值通过fill_value参数指定为9
-df2 = df.reindex(index = ["L1","L2","L3","L4"],columns = ["id3","id2","id1"],fill_value = 9)df2
+df2 = df.reindex(index = ["L1","L2","L3","L4"],columns = ["id3","id2","id1"],fill_value = 9)
+df2
 ```
 
 ### 12.2.2更换索引
@@ -3897,7 +3921,7 @@ df2 = df.reindex(index = ["L1","L2","L3","L4"],columns = ["id3","id2","id1"],fil
 与set_index()方法相反的方法是reset_index()。
 
 ```py
-data = {"name":("张三","李四","王五","赵六"),"sex":("男","女","女","男"),    "aged":(20,19,20,21),"score":(80,60,70,90)}
+data = {"name":("张三","李四","王五","赵六"),"sex":("男","女","女","男"), "aged":(20,19,20,21),"score":(80,60,70,90)}
 df = DataFrame(data)                       #使用字典创建DataFrame对象
 df
 
@@ -4355,3 +4379,124 @@ tips.groupby(['day','time'])['total_bill','tip'].agg([('tip_mean','mean'),('Rang
 ```
 
 <img src="Python.assets/image-20230207223059271.png" alt="image-20230207223059271" style="zoom: 50%;" />
+
+## 12.8读写execl
+
+### 12.8.1读取execl
+
+`read_excel(io, sheet_name=0, header=0, names=None, index_col=None, usecols=None)`
+
+- io：excel文件，如果命名为中文，在python2.7中，需要使用decode()来解码成unicode字符串，例如： pd.read_excel('示例'.decode('utf-8))
+- sheet_name：返回指定的sheet，如果将sheet_name指定为None，则返回全表，如果需要返回多个表，可以将sheet_name指定为一个列表，例如['sheet1', 'sheet2']
+- header：指定数据表的表头，默认值为0，即将第一行作为表头。
+- usecols：读取指定的列，例如想要读取第一列和第二列数据：pd.read_excel("example.xlsx", sheet_name=None, usecols=[0, 1])
+
+```py
+#-- coding: utf-8 --
+
+import pandas as pd
+
+#读取路径名字
+file_path = r'./demo.xls'
+#读取excel文件的方式一：默认读取第一个表单
+df = pd.read_excel(file_path)  
+#读取excel文件的方式二：通过制定表单名的方式读取：
+df = pd.read_excel(file_path, sheet_name = "Sheet1") # sheet_name不指定时默认返回全表数据
+#读取excel文件的方法三：通过表单索引来指定要访问的表单，0表示第一个表单
+df = pd.read_excel(file_path, sheet_name=0)  # 可以通过表单索引来指定读取的表单
+df = pd.read_excel(file_path, sheet_name=['功能模块',1])  # 可以混合的方式来指定
+df = pd.read_excel(file_path, sheet_name=[1, 2])  # 可以通过索引 同时指定多个
+```
+
+### 12.8.2写入execl
+
+`dataframe = pd.to_excel(filename, sheet_name = sheetname, header=0)`
+
+```py
+import pandas as pd
+# 将数据转化为DataFrame格式
+dataframe = pd.DataFrame(data)
+# 写入本地excel文件
+dataframe.to_excel("D:实验数据.xls" , sheet_name="data", na_rep="na_test",header=0)
+```
+
+
+
+### 12.8.3读取csv
+
+`pd.read_csv(filepath_or_buffer, sep=',', delimiter=None, header='infer', names=None, index_col=None, usecols=None, squeeze=False, prefix=None, mangle_dupe_cols=True, dtype=None, engine=None, converters=None, true_values=None, false_values=None, skipinitialspace=False, skiprows=None, nrows=None, na_values=None, keep_default_na=True, na_filter=True, verbose=False, skip_blank_lines=True, parse_dates=False, infer_datetime_format=False, keep_date_col=False, date_parser=None, dayfirst=False, iterator=False, chunksize=None, compression='infer', thousands=None, decimal=b'.', lineterminator=None, quotechar='"', quoting=0, escapechar=None, comment=None, encoding=None, dialect=None, tupleize_cols=False, error_bad_lines=True, warn_bad_lines=True, skipfooter=0, skip_footer=0, doublequote=True, delim_whitespace=False, as_recarray=False, compact_ints=False, use_unsigned=False, low_memory=True, buffer_lines=None, memory_map=False, float_precision=None)`
+
+常用参数解析：
+
+1、filepath_or_buffer:（这是唯一一个必须有的参数，其它都是按需求选用的）
+
+目标文件所在的路径
+
+2、sep：
+
+指定分隔符，默认是',' 逗号
+
+3、delimiter : str, default None
+
+定界符，备选分隔符（如果指定该参数，则sep参数失效）
+
+4、header：int or list of ints, default ‘infer’
+
+指定哪一行作为表头。默认设置为0（即第一行作为表头），如果没有表头的话，要修改参数，设置header=None
+
+5、names：
+
+指定列的名称，用列表表示。一般我们没有表头，即header=None时，使用这个参数。
+
+6、index_col：
+
+指定哪一列数据作为行索引，可以是一列，也可以多列。多列的话，会看到一个分层索引
+
+7、prefix:
+
+给列名添加前缀。如prefix="x",会出来"x1"、"x2"、"x3"。
+
+8.nrows : int, default None
+
+需要读取的行数（从文件头开始算起）
+
+9.encoding: 当出现乱码的时候参考官网文档
+
+codecs — Codec registry and base classes — Python 3.10.0 documentation
+
+10.skiprows : list-like or integer, default None
+
+需要忽略的行数（从文件开始处算起），或需要跳过的行号列表（从0开始）
+
+```py
+import os
+import pandas as pd
+data_dir = r'D:\work\体质数据集\data'
+edge_test = pd.read_csv(os.path.join(data_dir, 'B_id.csv'), sep=',')
+print(edge_test)
+```
+
+### 12.8.4写入csv
+
+`pd.to_csv(path_or_buf,sep,na_rep,columns,header,index)`
+
+参数解析：
+
+1.path_or_buf：字符串，放文件名、相对路径、文件流等；
+
+2.sep：字符串，分隔符，跟read_csv()的一个意思
+
+3.na_rep：字符串，将NaN转换为特定值
+
+4.columns：列表，指定哪些列写进去
+
+5.header：默认header=0，如果没有表头，设置header=None，表示没有表头。
+
+6.index：关于索引的，默认True,写入索引
+
+```py
+import pandas as pd
+dataframe = pd.DataFrame({'user_node': list1, 'tizhi_node': list2, 'rate': 1})
+dataframe.to_csv(r"D:\work\体质数据集\data\train.csv", sep=',')
+```
+
